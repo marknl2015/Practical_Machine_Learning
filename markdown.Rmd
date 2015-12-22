@@ -1,0 +1,95 @@
+---
+title: "Practical Machine Learning - Prediction Assignment Writeup"
+output:
+  html_document:
+    toc: true
+    theme: united
+---
+
+## Prepare environment
+
+```{r}
+library(caret);
+setwd("C:\\Temp\\ML");
+```
+
+
+## Read source datafiles
+
+I've looked at the data first, and saw many columns with unusable values NA, #DIV/0! and blanks. I will exclude the columns with many of those unusable values later.
+```{r}
+rawData <- read.csv("pml-training.csv", na.strings=c("","NA","#DIV/0!"));
+submissionData <- read.csv("pml-testing.csv", na.strings=c("","NA","#DIV/0!"));
+```
+
+
+## Prepare the data
+
+I'm only including the rows where the column new_window has the value 'no'. This seems to contain summary statistics which I will not use for prediction.
+```{r}
+rawData <- rawData[rawData$new_window=="no",];
+
+```
+
+Columns with more than 75% of unusable values will be removed from the dataset.
+```{r}
+rawData <- rawData[(colSums(is.na(rawData)) / nrow(rawData)) < .75];
+```
+
+Also I will exclude some other columns from the dataset which I think are not usable for prediction.
+These include date/time, user related and some technical fields.
+```{r}
+rawData <- subset(rawData,select=-c(new_window,X,user_name,raw_timestamp_part_1,raw_timestamp_part_2,cvtd_timestamp,num_window));
+```
+This results in 57 remaining predictor columns.
+
+
+## Prepare the data
+I'll split the data in a training and a testing dataset. The first will be used for building the model, the latter for validating it and to estimate the out of sample error rate.
+```{r}
+inTrain <- createDataPartition(y=rawData$classe, p=0.60, list=FALSE);
+training <- rawData[inTrain,];
+testing <- rawData[-inTrain,];
+```
+
+
+## Predictive Modeling
+
+### Decision Tree
+At first, I tried to build a simple Decision Tree to see how that performed.
+```{r}
+modelDT <- train(classe~., method="rpart", data=training);
+predDT <- predict(modelDT, testing);
+confusionMatrix(predDT,testing$classe);
+```
+As shown the accuracy is only about 49%. Since this is very low I decided to try a Random Forest algoritm next.
+
+### Random Forest
+Training the model with the training dataset. Also, I've used Carets build-in Cross Validation functionality. Since it's quite a large dataset I assumed 3 fold cross validation for this case would be sufficient.
+```{r}
+set.seed(123);
+modelRF <- train(classe~., method="rf", data=training, trControl=trainControl(method="cv",number=3));
+modelRF;
+```
+The accuracy looks promising.
+Now I'll see how it performes on the test dataset.
+```{r}
+predRF <- predict(modelRF, testing);
+confusionMatrix(predRF,testing$classe);
+```
+As shown in the confusionMatrix output the overall accuracy is about 99%, which is very good so no further action is needed.
+This also is a good indicator for the out of sample error rate, which I think is a nice figure.
+
+I've looked at the most important predictors, just for reference.
+```{r}
+varImp(modelRF);
+```
+
+
+## Apply model to submission dataset
+Finally I've used the model to predict the 20 cases in the submission dataset.
+```{r}
+result<-predict(modelRF,submissionData);
+result;
+```
+
