@@ -65,7 +65,7 @@ confusionMatrix(predDT,testing$classe);
 As shown the accuracy is only about 49%. Since this is very low I decided to try a Random Forest algoritm next.
 
 ### Random Forest
-Training the model with the training dataset. Also, I've used Carets build-in Cross Validation functionality. Since it's quite a large dataset I assumed 3 fold cross validation for this case would be sufficient.
+Training the model with the training dataset. Also, I've used Carets build-in **Cross Validation** functionality. Since it's quite a large dataset I assumed 3 fold cross validation for this case would be sufficient.
 ```{r}
 set.seed(123);
 modelRF <- train(classe~., method="rf", data=training, trControl=trainControl(method="cv",number=3));
@@ -77,8 +77,12 @@ Now I'll see how it performes on the test dataset.
 predRF <- predict(modelRF, testing);
 confusionMatrix(predRF,testing$classe);
 ```
-As shown in the confusionMatrix output the overall accuracy is about 99%, which is very good so no further action is needed.
-This also is a good indicator for the out of sample error rate, which I think is a nice figure.
+As shown in the confusionMatrix output the overall accuracy is about **99%**, which is very good so no further action is needed.
+
+### Out of sample error
+The **out of sample error** can be calculated as 1 - the accuracy, when measured while applying the trained model on the test dataset.
+So in this case that means **1-0.9915=0.0085** (see the confusionMatrix in the previous paragraph). In percentage (* 100) that is just **0,85 %**.
+In my opion that's a pretty good rate.
 
 I've looked at the most important predictors, just for reference.
 ```{r}
