@@ -62,7 +62,7 @@ modelDT <- train(classe~., method="rpart", data=training);
 predDT <- predict(modelDT, testing);
 confusionMatrix(predDT,testing$classe);
 ```
-As shown the accuracy is only about 49%. Since this is very low I decided to try a Random Forest algoritm next.
+As shown the accuracy is only about 50%. Since this is very low I decided to try a Random Forest algoritm next.
 
 ### Random Forest
 Training the model with the training dataset. Also, I've used Carets build-in **Cross Validation** functionality. Since it's quite a large dataset I assumed 3 fold cross validation for this case would be sufficient.
@@ -81,7 +81,7 @@ As shown in the confusionMatrix output the overall accuracy is about **99%**, wh
 
 ### Out of sample error
 The **out of sample error** can be calculated as 1 - the accuracy, when measured while applying the trained model on the test dataset.
-So in this case that means **1-0.9915=0.0085** (see the confusionMatrix in the previous paragraph). In percentage (* 100) that is just **0,85 %**.
+So in this case that means **1-0.9926=0.0074** (see the confusionMatrix in the previous paragraph). In percentage (* 100) that is just **0,74 %**.
 In my opion that's a pretty good rate.
 
 I've looked at the most important predictors, just for reference.
