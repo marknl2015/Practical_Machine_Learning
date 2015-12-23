@@ -68,10 +68,11 @@ img {
 <li><a href="#prepare-environment">Prepare environment</a></li>
 <li><a href="#read-source-datafiles">Read source datafiles</a></li>
 <li><a href="#prepare-the-data">Prepare the data</a></li>
-<li><a href="#prepare-the-data-1">Prepare the data</a></li>
+<li><a href="#split-the-dataset">Split the dataset</a></li>
 <li><a href="#predictive-modeling">Predictive Modeling</a><ul>
 <li><a href="#decision-tree">Decision Tree</a></li>
 <li><a href="#random-forest">Random Forest</a></li>
+<li><a href="#cross-validation">Cross Validation</a></li>
 <li><a href="#out-of-sample-error">Out of sample error</a></li>
 </ul></li>
 <li><a href="#apply-model-to-submission-dataset">Apply model to submission dataset</a></li>
@@ -102,8 +103,8 @@ submissionData &lt;- read.csv(&quot;pml-testing.csv&quot;, na.strings=c(&quot;&q
 <pre class="r"><code>rawData &lt;- subset(rawData,select=-c(new_window,X,user_name,raw_timestamp_part_1,raw_timestamp_part_2,cvtd_timestamp,num_window));</code></pre>
 <p>This results in 57 remaining predictor columns.</p>
 </div>
-<div id="prepare-the-data-1" class="section level2">
-<h2>Prepare the data</h2>
+<div id="split-the-dataset" class="section level2">
+<h2>Split the dataset</h2>
 <p>I’ll split the data in a training and a testing dataset. The first will be used for building the model, the latter for validating it and to estimate the out of sample error rate.</p>
 <pre class="r"><code>inTrain &lt;- createDataPartition(y=rawData$classe, p=0.60, list=FALSE);
 training &lt;- rawData[inTrain,];
@@ -153,7 +154,7 @@ confusionMatrix(predDT,testing$classe);</code></pre>
 </div>
 <div id="random-forest" class="section level3">
 <h3>Random Forest</h3>
-<p>Training the model with the training dataset. Also, I’ve used Carets build-in <strong>Cross Validation</strong> functionality. Since it’s quite a large dataset I assumed 3 fold cross validation for this case would be sufficient.</p>
+<p>Training the model with the training dataset. Also, I’ve used Carets build-in <strong>Cross Validation</strong> functionality.</p>
 <pre class="r"><code>set.seed(123);
 modelRF &lt;- train(classe~., method=&quot;rf&quot;, data=training, trControl=trainControl(method=&quot;cv&quot;,number=3));</code></pre>
 <pre><code>## Loading required package: randomForest
@@ -213,6 +214,11 @@ confusionMatrix(predRF,testing$classe);</code></pre>
 ## Detection Prevalence   0.2857   0.1933   0.1754   0.1619   0.1838
 ## Balanced Accuracy      0.9978   0.9935   0.9948   0.9911   0.9977</code></pre>
 <p>As shown in the confusionMatrix output the overall accuracy is about <strong>99%</strong>, which is very good so no further action is needed.</p>
+</div>
+<div id="cross-validation" class="section level3">
+<h3>Cross Validation</h3>
+<p>As mentioned I've used the Cross Validation functionality which is build in to the Caret package. You can see this additional parameter specified when training the model: <strong>trControl=trainControl(method="cv",number=3)**</strong>.</p>
+<p>Since it's quite a large dataset I assumed 3 fold cross validation for this case would be sufficient.</p>
 </div>
 <div id="out-of-sample-error" class="section level3">
 <h3>Out of sample error</h3>
